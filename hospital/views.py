@@ -8,6 +8,12 @@ from django.contrib.auth.decorators import login_required,user_passes_test
 from datetime import datetime,timedelta,date
 from django.conf import settings
 from django.db.models import Q
+from django.shortcuts import render
+from hospital.singleton import ContactUsSingleton
+from hospital.forms import ContactusForm
+from hospital.singleton import AppointmentSingleton
+
+
 def home_view(request):
     if request.user.is_authenticated:
         return HttpResponseRedirect('afterlogin')
@@ -452,7 +458,6 @@ def discharge_patient_view(request,pk):
 import io
 from xhtml2pdf import pisa
 from django.template.loader import get_template
-from django.template import Context
 from django.http import HttpResponse
 
 
@@ -719,30 +724,17 @@ def patient_appointment_view(request):
 
 @login_required(login_url='patientlogin')
 @user_passes_test(is_patient)
+
+
 def patient_book_appointment_view(request):
-    appointmentForm=forms.PatientAppointmentForm()
-    patient=models.Patient.objects.get(user_id=request.user.id) #for profile picture of patient in sidebar
-    message=None
-    mydict={'appointmentForm':appointmentForm,'patient':patient,'message':message}
-    if request.method=='POST':
-        appointmentForm=forms.PatientAppointmentForm(request.POST)
-        if appointmentForm.is_valid():
-            print(request.POST.get('doctorId'))
-            desc=request.POST.get('description')
+    appointment_singleton = AppointmentSingleton()
+    mydict = appointment_singleton.handle_appointment_booking(request)
 
-            doctor=models.Doctor.objects.get(user_id=request.POST.get('doctorId'))
-            
-            appointment=appointmentForm.save(commit=False)
-            appointment.doctorId=request.POST.get('doctorId')
-            appointment.patientId=request.user.id #----user can choose any patient but only their info will be stored
-            appointment.doctorName=models.User.objects.get(id=request.POST.get('doctorId')).first_name
-            appointment.patientName=request.user.first_name #----user can choose any patient but only their info will be stored
-            appointment.status=False
-            appointment.save()
-        return HttpResponseRedirect('patient-view-appointment')
-    return render(request,'hospital/patient_book_appointment.html',context=mydict)
+    if isinstance(mydict, dict):
+        return render(request, 'hospital/patient_book_appointment.html', context=mydict)
 
-# 2023
+    # If the result is an HttpResponseRedirect, return it directly
+    return mydict
 
 def patient_view_doctor_view(request):
     doctors=models.Doctor.objects.all().filter(status=True)
@@ -823,16 +815,12 @@ def aboutus_view(request):
     return render(request,'hospital/aboutus.html')
 
 def contactus_view(request):
-    sub = forms.ContactusForm()
-    if request.method == 'POST':
-        sub = forms.ContactusForm(request.POST)
-        if sub.is_valid():
-            email = sub.cleaned_data['Email']
-            name=sub.cleaned_data['Name']
-            message = sub.cleaned_data['Message']
-            send_mail(str(name)+' || '+str(email),message,settings.EMAIL_HOST_USER, settings.EMAIL_RECEIVING_USER, fail_silently = False)
-            return render(request, 'hospital/contactussuccess.html')
-    return render(request, 'hospital/contactus.html', {'form':sub})
+    contact_singleton = ContactUsSingleton()
+
+    if contact_singleton.handle_contact_form(request):
+        return render(request, 'hospital/contactussuccess.html')
+
+    return render(request, 'hospital/contactus.html', {'form': ContactusForm})
 
 
 #-
