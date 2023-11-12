@@ -122,7 +122,7 @@ def afterlogin_view(request):
 def handle_doctor_dashboard(request):
     doctor = Doctor.objects.filter(user_id=request.user.id, status=True).first()
     if doctor:
-        appointments = Appointment.objects.filter(doctor_id=request.user.id, status=True).order_by('-id')
+        appointments = Appointment.objects.filter(doctorId=request.user.id, status=True).order_by('-id')
         patients = Patient.objects.filter(status=True, assignedDoctorId=request.user.id).order_by('-id')
         appointments_and_patients = zip(appointments, patients)
         mydict = {
