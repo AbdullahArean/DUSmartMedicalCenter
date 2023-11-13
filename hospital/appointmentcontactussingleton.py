@@ -1,4 +1,4 @@
-# singleton.py
+# appointmentcontactussingleton.py
 
 from hospital.forms import ContactusForm
 from django.core.mail import send_mail

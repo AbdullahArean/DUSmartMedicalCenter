@@ -1,21 +1,18 @@
-from . import forms,models
-from django.shortcuts import render, redirect, reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from datetime import date
+
 from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import Group
 from django.db.models import Q
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect, reverse
+
+from hospital.appointmentcontactussingleton import ContactUsSingleton, AppointmentSingleton
 from hospital.forms import (
     AdminSigupForm,
-    DoctorUserForm,
-    DoctorForm,
-    PatientUserForm,
-    PatientForm,
-    AppointmentForm,
     ContactusForm,
 )
-from hospital.models import Doctor, Patient, Appointment, PatientDischargeDetails
-from django.contrib.auth.models import Group, User
-from datetime import date
-from hospital.singleton import ContactUsSingleton, AppointmentSingleton
+from hospital.models import Doctor, Patient, Appointment
+from . import forms, models
 
 
 def home_view(request):
@@ -65,36 +62,36 @@ def admin_signup_view(request):
     return signup_view(request, AdminSigupForm, 'hospital/adminsignup.html', 'adminlogin')
 
 
-def doctor_signup_view(request):
-    user_form = DoctorUserForm()
-    doctor_form = DoctorForm()
-    mydict = {'userForm': user_form, 'doctorForm': doctor_form}
-    return handle_doctor_patient_signup(request, user_form, doctor_form, mydict, 'doctorlogin')
-
-
-def patient_signup_view(request):
-    user_form = PatientUserForm()
-    patient_form = PatientForm()
-    mydict = {'userForm': user_form, 'patientForm': patient_form}
-    return handle_doctor_patient_signup(request, user_form, patient_form, mydict, 'patientlogin')
-
-
-def handle_doctor_patient_signup(request, user_form, role_form, mydict, redirect_url):
-    if request.method == 'POST':
-        user_form = DoctorUserForm(request.POST)
-        role_form = DoctorForm(request.POST, request.FILES) if 'doctor' in redirect_url else PatientForm(request.POST, request.FILES)
-        if user_form.is_valid() and role_form.is_valid():
-            user = user_form.save()
-            user.set_password(user.password)
-            user.save()
-            role = role_form.save(commit=False)
-            role.user = user
-            role.save()
-            group_name = redirect_url.split('-')[0].upper()
-            user_group = Group.objects.get_or_create(name=group_name)[0]
-            user_group.user_set.add(user)
-        return HttpResponseRedirect(redirect_url)
-    return render(request, f'hospital/{redirect_url}signup.html', context=mydict)
+# def doctor_signup_view(request):
+#     user_form = DoctorUserForm()
+#     doctor_form = DoctorForm()
+#     mydict = {'userForm': user_form, 'doctorForm': doctor_form}
+#     return handle_doctor_patient_signup(request, user_form, doctor_form, mydict, 'doctorlogin')
+#
+#
+# def patient_signup_view(request):
+#     user_form = PatientUserForm()
+#     patient_form = PatientForm()
+#     mydict = {'userForm': user_form, 'patientForm': patient_form}
+#     return handle_doctor_patient_signup(request, user_form, patient_form, mydict, 'patientlogin')
+#
+#
+# def handle_doctor_patient_signup(request, user_form, role_form, mydict, redirect_url):
+#     if request.method == 'POST':
+#         user_form = DoctorUserForm(request.POST)
+#         role_form = DoctorForm(request.POST, request.FILES) if 'doctor' in redirect_url else PatientForm(request.POST, request.FILES)
+#         if user_form.is_valid() and role_form.is_valid():
+#             user = user_form.save()
+#             user.set_password(user.password)
+#             user.save()
+#             role = role_form.save(commit=False)
+#             role.user = user
+#             role.save()
+#             group_name = redirect_url.split('-')[0].upper()
+#             user_group = Group.objects.get_or_create(name=group_name)[0]
+#             user_group.user_set.add(user)
+#         return HttpResponseRedirect(redirect_url)
+#     return render(request, f'hospital/{redirect_url}signup.html', context=mydict)
 
 
 def is_admin(user):
@@ -225,46 +222,46 @@ def admin_dashboard_view(request):
 #
 #
 #
-# def doctor_signup_view(request):
-#     userForm=forms.DoctorUserForm()
-#     doctorForm=forms.DoctorForm()
-#     mydict={'userForm':userForm,'doctorForm':doctorForm}
-#     if request.method=='POST':
-#         userForm=forms.DoctorUserForm(request.POST)
-#         doctorForm=forms.DoctorForm(request.POST,request.FILES)
-#         if userForm.is_valid() and doctorForm.is_valid():
-#             user=userForm.save()
-#             user.set_password(user.password)
-#             user.save()
-#             doctor=doctorForm.save(commit=False)
-#             doctor.user=user
-#             doctor=doctor.save()
-#             my_doctor_group = Group.objects.get_or_create(name='DOCTOR')
-#             my_doctor_group[0].user_set.add(user)
-#         return HttpResponseRedirect('doctorlogin')
-#     return render(request,'hospital/doctorsignup.html',context=mydict)
-#
-#
-# def patient_signup_view(request):
-#     userForm=forms.PatientUserForm()
-#     patientForm=forms.PatientForm()
-#     mydict={'userForm':userForm,'patientForm':patientForm}
-#     if request.method=='POST':
-#         userForm=forms.PatientUserForm(request.POST)
-#         patientForm=forms.PatientForm(request.POST,request.FILES)
-#         if userForm.is_valid() and patientForm.is_valid():
-#             user=userForm.save()
-#             user.set_password(user.password)
-#             user.save()
-#             patient=patientForm.save(commit=False)
-#             patient.user=user
-#             patient.assignedDoctorId=request.POST.get('assignedDoctorId')
-#             patient=patient.save()
-#             my_patient_group = Group.objects.get_or_create(name='PATIENT')
-#             my_patient_group[0].user_set.add(user)
-#         return HttpResponseRedirect('patientlogin')
-#     return render(request,'hospital/patientsignup.html',context=mydict)
-#
+def doctor_signup_view(request):
+    userForm=forms.DoctorUserForm()
+    doctorForm=forms.DoctorForm()
+    mydict={'userForm':userForm,'doctorForm':doctorForm}
+    if request.method=='POST':
+        userForm=forms.DoctorUserForm(request.POST)
+        doctorForm=forms.DoctorForm(request.POST,request.FILES)
+        if userForm.is_valid() and doctorForm.is_valid():
+            user=userForm.save()
+            user.set_password(user.password)
+            user.save()
+            doctor=doctorForm.save(commit=False)
+            doctor.user=user
+            doctor=doctor.save()
+            my_doctor_group = Group.objects.get_or_create(name='DOCTOR')
+            my_doctor_group[0].user_set.add(user)
+        return HttpResponseRedirect('doctorlogin')
+    return render(request,'hospital/doctorsignup.html',context=mydict)
+
+
+def patient_signup_view(request):
+    userForm=forms.PatientUserForm()
+    patientForm=forms.PatientForm()
+    mydict={'userForm':userForm,'patientForm':patientForm}
+    if request.method=='POST':
+        userForm=forms.PatientUserForm(request.POST)
+        patientForm=forms.PatientForm(request.POST,request.FILES)
+        if userForm.is_valid() and patientForm.is_valid():
+            user=userForm.save()
+            user.set_password(user.password)
+            user.save()
+            patient=patientForm.save(commit=False)
+            patient.user=user
+            patient.assignedDoctorId=request.POST.get('assignedDoctorId')
+            patient=patient.save()
+            my_patient_group = Group.objects.get_or_create(name='PATIENT')
+            my_patient_group[0].user_set.add(user)
+        return HttpResponseRedirect('patientlogin')
+    return render(request,'hospital/patientsignup.html',context=mydict)
+
 #
 #
 #
