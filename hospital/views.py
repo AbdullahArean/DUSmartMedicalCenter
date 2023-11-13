@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, reverse
 
-from hospital.appointmentcontactussingleton import ContactUsSingleton, AppointmentSingleton
+from hospital.designpatterns.appointmentcontactussingleton import ContactUsSingleton, AppointmentSingleton
 from hospital.forms import (
     AdminSigupForm,
     ContactusForm,
