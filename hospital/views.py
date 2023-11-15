@@ -21,21 +21,6 @@ from .designpatterns.PatientFacade import PatientFacade
 from .designpatterns.RoleCheck import is_admin, is_patient, is_doctor
 
 
-# - Strategy Pattern:
-# Used for handling different user roles with the role_check function.
-# - Template Method Pattern:
-# Implemented in the signup_view function to manage common user signup logic.
-# - Factory Method Pattern:
-# Potentially used in the handle_doctor_patient_signup function for creating role-specific signup handlers.
-# - Chain of Responsibility Pattern:
-# Applied in the afterlogin_view function to handle different user roles separately.
-# - Command Pattern:
-# Introduced through handle_doctor_dashboard and handle_patient_dashboard functions for role-specific dashboard actions.
-
-
-
-
-
 class home_view(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'hospital/index.html')
@@ -54,7 +39,6 @@ class doctorclick_view(View):
 class patientclick_view(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'hospital/patientclick.html')
-
 
 
 def render_if_not_authenticated(request, template_name):
@@ -706,25 +690,6 @@ def patient_view_appointment_view(request):
     appointments = models.Appointment.objects.all().filter(patientId=request.user.id)
     return render(request, 'hospital/patient_view_appointment.html', {'appointments': appointments, 'patient': patient})
 
-
-
-
-
-# class PatientFacade:
-#     def __init__(self, request):
-#         self.request = request
-#
-#     def get_patient_discharge_view(self):
-#         patient_details = PatientDetails(user_id=self.request.user.id)
-#         discharge_details = DischargeDetails(patient_id=patient_details.patient.id)
-#
-#         patient_dict = patient_details.get_patient_dict()
-#         discharge_dict = discharge_details.get_discharge_dict()
-#
-#         patient_dict.update(discharge_dict)  # Combine the dictionaries
-#
-#         return render(self.request, 'hospital/patient_discharge.html', context=patient_dict)
-#
 
 @login_required(login_url='patientlogin')
 @user_passes_test(is_patient)
