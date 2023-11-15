@@ -1,8 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 
-from hospital.designpatterns.departmentsingletonstrategy import DepartmentStrategy
-from hospital.designpatterns.documentbasefactory import DocumentBaseFactory
+from hospital.designpatterns.DepartmentSingletonStrategy import DepartmentStrategy
+from hospital.designpatterns.DocumentBaseFactory import DocumentBaseFactory
 
 
 class PersonStrategyFactory:

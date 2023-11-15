@@ -6,14 +6,19 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect, reverse
 from django.views import View
-
-from hospital.designpatterns.appointmentcontactussingleton import ContactUsSingleton, AppointmentSingleton
+import io
+from xhtml2pdf import pisa
+from django.template.loader import get_template
+from django.http import HttpResponse
+from hospital.designpatterns.AppointmentContactusSingleton import ContactUsSingleton, AppointmentSingleton
 from hospital.forms import (
     AdminSigupForm,
     ContactusForm,
 )
 from hospital.models import Doctor, Patient, Appointment
 from . import forms, models
+from .designpatterns.PatientFacade import PatientFacade
+from .designpatterns.RoleCheck import is_admin, is_patient, is_doctor
 
 
 # - Strategy Pattern:
@@ -28,20 +33,7 @@ from . import forms, models
 # Introduced through handle_doctor_dashboard and handle_patient_dashboard functions for role-specific dashboard actions.
 
 
-def role_check(user, group_name):
-    return user.groups.filter(name=group_name).exists()
 
-
-def is_admin(user):
-    return role_check(user, 'ADMIN')
-
-
-def is_doctor(user):
-    return role_check(user, 'DOCTOR')
-
-
-def is_patient(user):
-    return role_check(user, 'PATIENT')
 
 
 class home_view(View):
@@ -62,6 +54,7 @@ class doctorclick_view(View):
 class patientclick_view(View):
     def get(self, request, *args, **kwargs):
         return render(request, 'hospital/patientclick.html')
+
 
 
 def render_if_not_authenticated(request, template_name):
@@ -370,7 +363,6 @@ def admin_add_patient_view(request):
     return render(request, 'hospital/admin_add_patient.html', context=mydict)
 
 
-# ------FOR APPROVING PATIENT BY ADMIN----------
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
 def admin_approve_patient_view(request):
@@ -453,13 +445,6 @@ def discharge_patient_view(request, pk):
         pDD.save()
         return render(request, 'hospital/patient_final_bill.html', context=patientDict)
     return render(request, 'hospital/patient_generate_bill.html', context=patientDict)
-
-
-# --for discharge patient bill (pdf) download and printing
-import io
-from xhtml2pdf import pisa
-from django.template.loader import get_template
-from django.http import HttpResponse
 
 
 def render_to_pdf(template_src, context_dict):
@@ -722,39 +707,63 @@ def patient_view_appointment_view(request):
     return render(request, 'hospital/patient_view_appointment.html', {'appointments': appointments, 'patient': patient})
 
 
+
+
+
+# class PatientFacade:
+#     def __init__(self, request):
+#         self.request = request
+#
+#     def get_patient_discharge_view(self):
+#         patient_details = PatientDetails(user_id=self.request.user.id)
+#         discharge_details = DischargeDetails(patient_id=patient_details.patient.id)
+#
+#         patient_dict = patient_details.get_patient_dict()
+#         discharge_dict = discharge_details.get_discharge_dict()
+#
+#         patient_dict.update(discharge_dict)  # Combine the dictionaries
+#
+#         return render(self.request, 'hospital/patient_discharge.html', context=patient_dict)
+#
+
 @login_required(login_url='patientlogin')
 @user_passes_test(is_patient)
 def patient_discharge_view(request):
-    patient = models.Patient.objects.get(user_id=request.user.id)  # for profile picture of patient in sidebar
-    dischargeDetails = models.PatientDischargeDetails.objects.all().filter(patientId=patient.id).order_by('-id')[:1]
-    patientDict = None
-    if dischargeDetails:
-        patientDict = {
-            'is_discharged': True,
-            'patient': patient,
-            'patientId': patient.id,
-            'patientName': patient.get_name,
-            'assignedDoctorName': dischargeDetails[0].assignedDoctorName,
-            'address': patient.address,
-            'mobile': patient.mobile,
-            'symptoms': patient.symptoms,
-            'admitDate': patient.admitDate,
-            'releaseDate': dischargeDetails[0].releaseDate,
-            'daySpent': dischargeDetails[0].daySpent,
-            'medicineCost': dischargeDetails[0].medicineCost,
-            'roomCharge': dischargeDetails[0].roomCharge,
-            'doctorFee': dischargeDetails[0].doctorFee,
-            'OtherCharge': dischargeDetails[0].OtherCharge,
-            'total': dischargeDetails[0].total,
-        }
-        print(patientDict)
-    else:
-        patientDict = {
-            'is_discharged': False,
-            'patient': patient,
-            'patientId': request.user.id,
-        }
-    return render(request, 'hospital/patient_discharge.html', context=patientDict)
+    patient_facade = PatientFacade(request)
+    return patient_facade.get_patient_discharge_view()
+
+
+# def patient_discharge_view(request):
+#     patient = models.Patient.objects.get(user_id=request.user.id)  # for profile picture of patient in sidebar
+#     dischargeDetails = models.PatientDischargeDetails.objects.all().filter(patientId=patient.id).order_by('-id')[:1]
+#     patientDict = None
+#     if dischargeDetails:
+#         patientDict = {
+#             'is_discharged': True,
+#             'patient': patient,
+#             'patientId': patient.id,
+#             'patientName': patient.get_name,
+#             'assignedDoctorName': dischargeDetails[0].assignedDoctorName,
+#             'address': patient.address,
+#             'mobile': patient.mobile,
+#             'symptoms': patient.symptoms,
+#             'admitDate': patient.admitDate,
+#             'releaseDate': dischargeDetails[0].releaseDate,
+#             'daySpent': dischargeDetails[0].daySpent,
+#             'medicineCost': dischargeDetails[0].medicineCost,
+#             'roomCharge': dischargeDetails[0].roomCharge,
+#             'doctorFee': dischargeDetails[0].doctorFee,
+#             'OtherCharge': dischargeDetails[0].OtherCharge,
+#             'total': dischargeDetails[0].total,
+#         }
+#         print(patientDict)
+#     else:
+#         patientDict = {
+#             'is_discharged': False,
+#             'patient': patient,
+#             'patientId': request.user.id,
+#         }
+#     return render(request, 'hospital/patient_discharge.html', context=patientDict)
 
 
 def aboutus_view(request):
