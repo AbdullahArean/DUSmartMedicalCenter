@@ -686,9 +686,9 @@ def search_doctor_view(request):
 @login_required(login_url='patientlogin')
 @user_passes_test(is_patient)
 def patient_view_appointment_view(request):
-    patient = models.Patient.objects.get(user_id=request.user.id)  # for profile picture of patient in sidebar
-    appointments = models.Appointment.objects.all().filter(patientId=request.user.id)
-    return render(request, 'hospital/patient_view_appointment.html', {'appointments': appointments, 'patient': patient})
+    patient=models.Patient.objects.get(user_id=request.user.id) #for profile picture of patient in sidebar
+    appointments=models.Appointment.objects.all().filter(patientId=request.user.id)
+    return render(request,'hospital/patient_view_appointment.html',{'appointments':appointments,'patient':patient})
 
 
 @login_required(login_url='patientlogin')
