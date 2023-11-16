@@ -126,6 +126,7 @@ def admin_dashboard_view(request):
     return render(request, 'hospital/admin_dashboard.html', context=mydict)
 
 
+
 def doctor_signup_view(request):
     userForm = forms.DoctorUserForm()
     doctorForm = forms.DoctorForm()
@@ -166,6 +167,17 @@ def patient_signup_view(request):
         return HttpResponseRedirect('patientlogin')
     return render(request, 'hospital/patientsignup.html', context=mydict)
 
+# from .designpatterns.SignUpAbstractFactory import DoctorSignupFactory, PatientSignupFactory
+
+# def doctor_signup_view(request):
+#     doctor_factory = DoctorSignupFactory()
+#     return doctor_factory.signup_view(request)
+#
+#
+# def patient_signup_view(request):
+#     patient_factory = PatientSignupFactory()
+#     return patient_factory.signup_view(request)
+# Under Development
 
 @login_required(login_url='adminlogin')
 @user_passes_test(is_admin)
@@ -686,9 +698,9 @@ def search_doctor_view(request):
 @login_required(login_url='patientlogin')
 @user_passes_test(is_patient)
 def patient_view_appointment_view(request):
-    patient=models.Patient.objects.get(user_id=request.user.id) #for profile picture of patient in sidebar
-    appointments=models.Appointment.objects.all().filter(patientId=request.user.id)
-    return render(request,'hospital/patient_view_appointment.html',{'appointments':appointments,'patient':patient})
+    patient = models.Patient.objects.get(user_id=request.user.id)  # for profile picture of patient in sidebar
+    appointments = models.Appointment.objects.all().filter(patientId=request.user.id)
+    return render(request, 'hospital/patient_view_appointment.html', {'appointments': appointments, 'patient': patient})
 
 
 @login_required(login_url='patientlogin')

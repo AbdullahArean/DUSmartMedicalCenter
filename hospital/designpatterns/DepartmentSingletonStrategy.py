@@ -50,14 +50,14 @@ class DepartmentStrategy(metaclass=SingletonMeta):
     def get_choices(cls):
         if not cls.departments:
             cls.populate_departments()
-        return cls.departments
+        return list(set(cls.departments))
 
     @classmethod
     def populate_departments(cls):
         for subclass in cls.__subclasses__():
             subclass_name = subclass().__str__()
             subclass_description = subclass().__dict__["description"]
-            DepartmentStrategy.departments.append((subclass_name, subclass_description))
+            DepartmentStrategy.departments.append((subclass_name,subclass_description))
 
 
 class CardiologistDepartment(DepartmentStrategy):
