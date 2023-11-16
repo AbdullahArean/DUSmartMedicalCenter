@@ -18,7 +18,7 @@ from hospital.forms import (
 from hospital.models import Doctor, Patient, Appointment
 from . import forms, models
 from .designpatterns.PatientFacade import PatientFacade
-from .designpatterns.RoleCheck import is_admin, is_patient, is_doctor
+from .designpatterns.RoleCheckCommand import IsAdminCommand, IsDoctorCommand, IsPatientCommand
 
 
 class home_view(View):
@@ -68,11 +68,11 @@ def admin_signup_view(request):
 
 def afterlogin_view(request):
     user = request.user
-    if is_admin(user):
+    if IsAdminCommand(user).execute():
         return redirect('admin-dashboard')
-    elif is_doctor(user):
+    elif IsDoctorCommand(user).execute():
         return handle_doctor_dashboard(request)
-    elif is_patient(user):
+    elif IsPatientCommand(user).execute():
         return handle_patient_dashboard(request)
 
 
@@ -126,7 +126,6 @@ def admin_dashboard_view(request):
     return render(request, 'hospital/admin_dashboard.html', context=mydict)
 
 
-
 def doctor_signup_view(request):
     userForm = forms.DoctorUserForm()
     doctorForm = forms.DoctorForm()
@@ -167,6 +166,7 @@ def patient_signup_view(request):
         return HttpResponseRedirect('patientlogin')
     return render(request, 'hospital/patientsignup.html', context=mydict)
 
+
 # from .designpatterns.SignUpAbstractFactory import DoctorSignupFactory, PatientSignupFactory
 
 # def doctor_signup_view(request):
@@ -180,20 +180,20 @@ def patient_signup_view(request):
 # Under Development
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_doctor_view(request):
     return render(request, 'hospital/admin_doctor.html')
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_view_doctor_view(request):
     doctors = models.Doctor.objects.all().filter(status=True)
     return render(request, 'hospital/admin_view_doctor.html', {'doctors': doctors})
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def delete_doctor_from_hospital_view(request, pk):
     doctor = models.Doctor.objects.get(id=pk)
     user = models.User.objects.get(id=doctor.user_id)
@@ -203,7 +203,7 @@ def delete_doctor_from_hospital_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def update_doctor_view(request, pk):
     doctor = models.Doctor.objects.get(id=pk)
     user = models.User.objects.get(id=doctor.user_id)
@@ -226,7 +226,7 @@ def update_doctor_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_add_doctor_view(request):
     userForm = forms.DoctorUserForm()
     doctorForm = forms.DoctorForm()
@@ -252,7 +252,7 @@ def admin_add_doctor_view(request):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_approve_doctor_view(request):
     # those whose approval are needed
     doctors = models.Doctor.objects.all().filter(status=False)
@@ -260,7 +260,7 @@ def admin_approve_doctor_view(request):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def approve_doctor_view(request, pk):
     doctor = models.Doctor.objects.get(id=pk)
     doctor.status = True
@@ -269,7 +269,7 @@ def approve_doctor_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def reject_doctor_view(request, pk):
     doctor = models.Doctor.objects.get(id=pk)
     user = models.User.objects.get(id=doctor.user_id)
@@ -279,27 +279,27 @@ def reject_doctor_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_view_doctor_specialisation_view(request):
     doctors = models.Doctor.objects.all().filter(status=True)
     return render(request, 'hospital/admin_view_doctor_specialisation.html', {'doctors': doctors})
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_patient_view(request):
     return render(request, 'hospital/admin_patient.html')
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_view_patient_view(request):
     patients = models.Patient.objects.all().filter(status=True)
     return render(request, 'hospital/admin_view_patient.html', {'patients': patients})
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def delete_patient_from_hospital_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
     user = models.User.objects.get(id=patient.user_id)
@@ -309,7 +309,7 @@ def delete_patient_from_hospital_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def update_patient_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
     user = models.User.objects.get(id=patient.user_id)
@@ -333,7 +333,7 @@ def update_patient_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_add_patient_view(request):
     userForm = forms.PatientUserForm()
     patientForm = forms.PatientForm()
@@ -360,7 +360,7 @@ def admin_add_patient_view(request):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_approve_patient_view(request):
     # those whose approval are needed
     patients = models.Patient.objects.all().filter(status=False)
@@ -368,7 +368,7 @@ def admin_approve_patient_view(request):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def approve_patient_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
     patient.status = True
@@ -377,7 +377,7 @@ def approve_patient_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def reject_patient_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
     user = models.User.objects.get(id=patient.user_id)
@@ -387,14 +387,14 @@ def reject_patient_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_discharge_patient_view(request):
     patients = models.Patient.objects.all().filter(status=True)
     return render(request, 'hospital/admin_discharge_patient.html', {'patients': patients})
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def discharge_patient_view(request, pk):
     patient = models.Patient.objects.get(id=pk)
     days = (date.today() - patient.admitDate)  # 2 days, 0:00:00
@@ -474,20 +474,20 @@ def download_pdf_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_appointment_view(request):
     return render(request, 'hospital/admin_appointment.html')
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_view_appointment_view(request):
     appointments = models.Appointment.objects.all().filter(status=True)
     return render(request, 'hospital/admin_view_appointment.html', {'appointments': appointments})
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_add_appointment_view(request):
     appointmentForm = forms.AppointmentForm()
     mydict = {'appointmentForm': appointmentForm, }
@@ -504,9 +504,8 @@ def admin_add_appointment_view(request):
         return HttpResponseRedirect('admin-view-appointment')
     return render(request, 'hospital/admin_add_appointment.html', context=mydict)
 
-
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def admin_approve_appointment_view(request):
     # those whose approval are needed
     appointments = models.Appointment.objects.all().filter(status=False)
@@ -514,7 +513,7 @@ def admin_approve_appointment_view(request):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def approve_appointment_view(request, pk):
     appointment = models.Appointment.objects.get(id=pk)
     appointment.status = True
@@ -523,7 +522,7 @@ def approve_appointment_view(request, pk):
 
 
 @login_required(login_url='adminlogin')
-@user_passes_test(is_admin)
+@user_passes_test(lambda user: IsAdminCommand(user).execute())
 def reject_appointment_view(request, pk):
     appointment = models.Appointment.objects.get(id=pk)
     appointment.delete()
@@ -531,7 +530,7 @@ def reject_appointment_view(request, pk):
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def doctor_dashboard_view(request):
     # for three cards
     patientcount = models.Patient.objects.all().filter(status=True, assignedDoctorId=request.user.id).count()
@@ -557,7 +556,7 @@ def doctor_dashboard_view(request):
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def doctor_patient_view(request):
     mydict = {
         'doctor': models.Doctor.objects.get(user_id=request.user.id),  # for profile picture of doctor in sidebar
@@ -566,7 +565,7 @@ def doctor_patient_view(request):
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def doctor_view_patient_view(request):
     patients = models.Patient.objects.all().filter(status=True, assignedDoctorId=request.user.id)
     doctor = models.Doctor.objects.get(user_id=request.user.id)  # for profile picture of doctor in sidebar
@@ -574,7 +573,7 @@ def doctor_view_patient_view(request):
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def search_view(request):
     doctor = models.Doctor.objects.get(user_id=request.user.id)  # for profile picture of doctor in sidebar
     # whatever user write in search box we get in query
@@ -585,7 +584,7 @@ def search_view(request):
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def doctor_view_discharge_patient_view(request):
     dischargedpatients = models.PatientDischargeDetails.objects.all().distinct().filter(
         assignedDoctorName=request.user.first_name)
@@ -595,14 +594,14 @@ def doctor_view_discharge_patient_view(request):
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def doctor_appointment_view(request):
     doctor = models.Doctor.objects.get(user_id=request.user.id)  # for profile picture of doctor in sidebar
     return render(request, 'hospital/doctor_appointment.html', {'doctor': doctor})
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def doctor_view_appointment_view(request):
     doctor = models.Doctor.objects.get(user_id=request.user.id)  # for profile picture of doctor in sidebar
     appointments = models.Appointment.objects.all().filter(status=True, doctorId=request.user.id)
@@ -615,7 +614,7 @@ def doctor_view_appointment_view(request):
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def doctor_delete_appointment_view(request):
     doctor = models.Doctor.objects.get(user_id=request.user.id)  # for profile picture of doctor in sidebar
     appointments = models.Appointment.objects.all().filter(status=True, doctorId=request.user.id)
@@ -628,7 +627,7 @@ def doctor_delete_appointment_view(request):
 
 
 @login_required(login_url='doctorlogin')
-@user_passes_test(is_doctor)
+@user_passes_test(lambda user: IsDoctorCommand(user).execute())
 def delete_appointment_view(request, pk):
     appointment = models.Appointment.objects.get(id=pk)
     appointment.delete()
@@ -643,7 +642,7 @@ def delete_appointment_view(request, pk):
 
 
 @login_required(login_url='patientlogin')
-@user_passes_test(is_patient)
+@user_passes_test(lambda user: IsPatientCommand(user).execute())
 def patient_dashboard_view(request):
     patient = models.Patient.objects.get(user_id=request.user.id)
     doctor = models.Doctor.objects.get(user_id=patient.assignedDoctorId)
@@ -660,14 +659,14 @@ def patient_dashboard_view(request):
 
 
 @login_required(login_url='patientlogin')
-@user_passes_test(is_patient)
+@user_passes_test(lambda user: IsPatientCommand(user).execute())
 def patient_appointment_view(request):
     patient = models.Patient.objects.get(user_id=request.user.id)  # for profile picture of patient in sidebar
     return render(request, 'hospital/patient_appointment.html', {'patient': patient})
 
 
 @login_required(login_url='patientlogin')
-@user_passes_test(is_patient)
+@user_passes_test(lambda user: IsPatientCommand(user).execute())
 def patient_book_appointment_view(request):
     appointment_singleton = AppointmentSingleton()
     mydict = appointment_singleton.handle_appointment_booking(request)
@@ -696,7 +695,7 @@ def search_doctor_view(request):
 
 
 @login_required(login_url='patientlogin')
-@user_passes_test(is_patient)
+@user_passes_test(lambda user: IsPatientCommand(user).execute())
 def patient_view_appointment_view(request):
     patient = models.Patient.objects.get(user_id=request.user.id)  # for profile picture of patient in sidebar
     appointments = models.Appointment.objects.all().filter(patientId=request.user.id)
@@ -704,7 +703,7 @@ def patient_view_appointment_view(request):
 
 
 @login_required(login_url='patientlogin')
-@user_passes_test(is_patient)
+@user_passes_test(lambda user: IsPatientCommand(user).execute())
 def patient_discharge_view(request):
     patient_facade = PatientFacade(request)
     return patient_facade.get_patient_discharge_view()
