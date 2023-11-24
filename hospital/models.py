@@ -29,6 +29,7 @@ class Person(models.Model):
     def get_id(self):
         return self.user.id
 
+    # an abstract base class and is not meant to be instantiated or used on its own to create database tables
     class Meta:
         abstract = True
 
